@@ -1,0 +1,111 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+
+import 'screens/file_selection_screen.dart';
+import 'screens/playlist_player_screen.dart';
+import 'services/media_playlist_service.dart';
+
+void main() {
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  runApp(const DailyWorkoutApp());
+}
+
+class DailyWorkoutApp extends StatelessWidget {
+  const DailyWorkoutApp({super.key});
+
+  // Colors picked to match the app icon (deep indigo -> hot orange-red).
+  static const Color accent = Color(0xFFFF5A3C);
+  static const Color deepIndigo = Color(0xFF1E143C);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'NextCue',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: accent,
+          brightness: Brightness.dark,
+          primary: accent,
+          secondary: deepIndigo,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        sliderTheme: SliderThemeData(
+          activeTrackColor: accent,
+          inactiveTrackColor: Colors.white24,
+          thumbColor: accent,
+          overlayColor: accent.withValues(alpha: 0.2),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      home: const _StartupRouter(),
+    );
+  }
+}
+
+/// Loads the saved playlist on startup and routes to the appropriate screen.
+/// FileSelectionScreen is always placed at the base of the navigation stack.
+/// If files are already saved, PlaylistPlayerScreen is pushed on top, so that
+/// pressing Close/back from the player always returns to FileSelectionScreen
+/// rather than revealing the defunct splash screen (black screen).
+class _StartupRouter extends StatefulWidget {
+  const _StartupRouter();
+
+  @override
+  State<_StartupRouter> createState() => _StartupRouterState();
+}
+
+class _StartupRouterState extends State<_StartupRouter> {
+  @override
+  void initState() {
+    super.initState();
+    _route();
+  }
+
+  Future<void> _route() async {
+    final service = MediaPlaylistService();
+    final items = await service.loadPlaylist();
+
+    if (!mounted) return;
+
+    // Always land on FileSelectionScreen as the stack base.
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const FileSelectionScreen()),
+    );
+
+    if (items.isNotEmpty && mounted) {
+      // Push the player on top so back/close returns to FileSelectionScreen.
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => PlaylistPlayerScreen(playlist: List.unmodifiable(items)),
+        ),
+      );
+    }
+
+    FlutterNativeSplash.remove();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Shown briefly while we check saved files, matching the native splash.
+    return Scaffold(
+      backgroundColor: const Color(0xFFEDF3F9),
+      body: Center(
+        child: Image.asset(
+          'assets/splash/splash.png',
+          width: 200,
+          height: 200,
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+}

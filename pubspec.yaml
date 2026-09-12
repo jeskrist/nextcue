@@ -1,0 +1,59 @@
+name: nextcue
+description: "NextCue - pick a workout video once, and jump straight into it every time."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  video_player: ^2.9.2       # plays the local video file
+  image_picker: ^1.1.2       # lets the user pick a video from their gallery/files
+  shared_preferences: ^2.3.3 # remembers the chosen video between app launches
+  path_provider: ^2.1.4      # finds a safe permanent folder to store the chosen video
+  wakelock_plus: ^1.8.0
+  file_picker: ^12.3.0       # multi-select dialog for mixed video and image files
+  uuid: ^4.6.0               # unique IDs for media items
+  fc_native_video_thumbnail: ^3.0.1
+  flutter_native_splash: ^2.4.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icon/
+    - assets/splash/
+
+# Run: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/icon/icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "assets/icon/icon_background.png"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+
+# Run: dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#edf3f9"
+  image: "assets/splash/splash.png"
+  android_12:
+    image: "assets/splash/splash_android12.png"
+    icon_background_color: "#edf3f9"
+    color: "#edf3f9"
+  android: true
+  ios: true
+  web: true
+
