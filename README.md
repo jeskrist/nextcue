@@ -71,11 +71,12 @@ machine with Flutter installed.
    flutter pub get
    ```
 
-6. **Generate the launcher icon** from the artwork in `assets/icon/`:
+6. **Generate the launcher icon and splash screen:**
    ```bash
    dart run flutter_launcher_icons
+   dart run flutter_native_splash:create
    ```
-   This writes all the mipmap/adaptive-icon resources into `android/`.
+   This writes all the launcher icon and splash screen resources into `android/`, `ios/`, and `web/`.
 
 7. **Run or build:**
    ```bash
