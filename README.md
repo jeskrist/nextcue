@@ -1,102 +1,132 @@
 # NextCue 🏋️‍♂️
 
-A simple Flutter app that plays one workout video, over and over. Pick the video
-once — it's remembered for every future launch — then control it with big,
-sweaty-hands-friendly buttons.
+One playlist app, endless uses. Queue up to 10 clips or photos, play them
+hands-free, and it remembers your playlist between launches — built for
+sweaty-hands situations like workouts where you don't want to touch the
+screen mid-set.
 
-## What's included in this package
+## Features
+
+- **Mixed playlists** — queue up to 10 items in any combination of videos and
+  images.
+- **Persistent across launches** — your playlist (order, per-item settings,
+  and thumbnails) is saved automatically and reloads every time you open the
+  app.
+- **Drag-to-reorder** — long-press a thumbnail to pick it up and drag it to a
+  new position in the queue.
+- **Per-image display duration** — tap the timer badge on any image thumbnail
+  to set how long it stays on screen during playback (minutes/seconds picker,
+  minimum 1 second, defaults to 5s).
+- **Swipe-to-start** — swipe left anywhere on the playlist screen to jump
+  straight into playback.
+- **Auto-advancing playback** — videos advance to the next item when they
+  finish playing; images advance when their timer runs out.
+- **Swipe between items mid-playback** — page left/right to jump to a
+  different item at any time, not just when the current one finishes.
+- **Swipe back to playlist** — overscrolling past the first item (or swiping
+  on a single-item playlist) returns you to the playlist screen.
+- **"Cue Complete" screen** — reaching the end of the playlist shows a
+  completion screen with a one-tap restart from the beginning.
+- **Full video controls** — tap the video to pause; while paused, use restart,
+  back 10s, forward 10s, or resume. A draggable progress bar is always
+  visible for scrubbing to any point, playing or paused.
+- **Video thumbnails** — auto-generated for each video you add, shown in the
+  playlist grid with order number and play glyph; a fallback icon is shown if
+  generation fails or the file isn't readable.
+- **Screen stays awake during playback** — the device won't sleep while a
+  video or image timer is actively playing.
+- **Originals are never touched** — media files are referenced from their
+  original location, not copied. Removing an item from the playlist deletes
+  only its cached thumbnail, never the source file.
+- **Cross-platform** — built with Flutter; runs on Android, iOS, macOS,
+  Windows, and Linux from the same codebase.
+
+## How it works
+
+1. **First launch** shows an empty playlist with an "Add Media Files" button.
+2. **Pick up to 10 files** — a native multi-select file picker lets you
+   choose any mix of videos and photos. If you pick more than the remaining
+   slots, only the ones that fit are added and you're told how many were
+   skipped.
+3. **Arrange your queue** — hold and drag any thumbnail to reorder; tap the
+   timer badge on an image to change how long it displays; tap the delete
+   icon on any thumbnail to remove it.
+4. **Tap "Start Cue"** (or swipe left on the playlist screen) to begin
+   playback from the top.
+5. **During playback**, videos and images auto-advance in order. You can also
+   manually swipe to any item, pause/scrub videos, or swipe back out to the
+   playlist screen.
+6. Reaching the last item shows a completion screen you can restart from, or
+   close to return to the playlist.
+
+## Project structure
 
 ```
 nextcue/
 ├── pubspec.yaml
-├── assets/icon/icon.png             (legacy launcher icon, full-bleed square)
-├── assets/icon/icon_foreground.png  (transparent Android adaptive-icon layer)
-└── lib/
-    ├── main.dart
-    ├── services/video_storage_service.dart
-    └── screens/video_player_screen.dart
+├── assets/
+│   ├── icon/            (launcher icon source images)
+│   └── splash/          (splash screen source images)
+├── lib/
+│   ├── main.dart                          # entry point, theme, startup routing
+│   ├── models/
+│   │   └── media_item.dart                # MediaItem (video/image + metadata)
+│   ├── services/
+│   │   └── media_playlist_service.dart    # persistence, import, thumbnails
+│   ├── screens/
+│   │   ├── file_selection_screen.dart     # build/edit the playlist
+│   │   └── playlist_player_screen.dart    # full-screen playback
+│   └── widgets/
+│       ├── single_video_player_view.dart  # video playback UI/controls
+│       ├── single_image_viewer.dart       # timed image display
+│       └── duration_picker_sheet.dart     # image-duration bottom sheet
+└── test/                                  # one test file per screen/widget/service/model
 ```
 
-This is the **Dart/Flutter source**, not a pre-built APK. This environment
-doesn't have the Flutter SDK, Android SDK, or access to pub.dev, so I can't
-compile an .apk here — but the steps below take about 10 minutes on any
-machine with Flutter installed.
+See `ARCHITECTURE.md` for a deeper explanation of how these pieces fit
+together and where to make common changes.
 
-## How the app works
-
-- **First launch:** shows a "Choose Workout Video" button. Pick a video from
-  your gallery — it's copied into the app's private storage and remembered
-  (via `shared_preferences`), so it reloads automatically every time you open
-  the app after that.
-- **Starts paused**, with one big play button in the middle.
-- **Tap anywhere on the video** while it's playing → it pauses.
-- **While paused** you get four big buttons: restart from the beginning,
-  back 10s, resume (play), forward 10s.
-- **Progress bar** at the bottom is always visible and draggable — jump to
-  any point in the video any time, playing or paused.
-- Tap the video-library icon in the top-right app bar any time to swap in a
-  different video.
+This is the **Dart/Flutter source**; `android/`, `ios/`, `macos/`,
+`windows/`, and `linux/` contain platform scaffolding generated by
+`flutter create` plus icon/splash output.
 
 ## Build it yourself
 
 1. **Get Flutter**: https://docs.flutter.dev/get-started/install (any recent
    stable version, e.g. 3.24+).
 
-2. **Create the native scaffolding.** In an empty folder:
-   ```bash
-   flutter create --org com.yourname nextcue
-   ```
-   This generates the `android/`, `ios/`, etc. folders that aren't included
-   in this package.
-
-3. **Copy in the files from this package**, overwriting the generated
-   `pubspec.yaml`, `lib/`, and adding `assets/`:
-   ```bash
-   cp -r /path/to/this/nextcue/lib        ./nextcue/
-   cp -r /path/to/this/nextcue/assets     ./nextcue/
-   cp /path/to/this/nextcue/pubspec.yaml  ./nextcue/
-   cd nextcue
-   ```
-
-4. **Set the app name** so "NextCue" shows under the icon on the home
-   screen. Edit `android/app/src/main/AndroidManifest.xml` and set:
-   ```xml
-   <application
-       android:label="NextCue"
-       ...>
-   ```
-
-5. **Install dependencies:**
+2. **Install dependencies:**
    ```bash
    flutter pub get
    ```
 
-6. **Generate the launcher icon and splash screen:**
+3. **Generate the launcher icon and splash screen** (only needed after
+   changing the source images in `assets/icon/` or `assets/splash/`):
    ```bash
    dart run flutter_launcher_icons
    dart run flutter_native_splash:create
    ```
-   This writes all the launcher icon and splash screen resources into `android/`, `ios/`, and `web/`.
 
-7. **Run or bworkoutuild:**
+4. **Run or build:**
    ```bash
    flutter run                     # test on a connected device/emulator
    flutter build apk --release     # produces build/app/outputs/flutter-apk/app-release.apk
    ```
 
+5. **Run tests:**
+   ```bash
+   flutter test
+   ```
+
 ## Notes
 
-- **Permissions:** `image_picker` handles gallery access itself. On Android
-  13+ it uses the system photo/video picker, which needs no runtime
+- **Permissions:** `file_picker` handles gallery/file access itself. On
+  Android 13+ it uses the system photo/video picker, which needs no runtime
   permission at all. On older Android versions it will prompt for storage
-  permission automatically the first time you pick a video — no manifest
-  changes needed.
-- **Large videos:** the app makes a private copy of the video you pick (so it
-  keeps working even if you delete/move the original from your gallery).
-  Make sure the device has enough free storage for that copy.
-- **Colors/branding:** the theme (`lib/main.dart`) uses the same
-  indigo → orange-red gradient as the logo. Tweak `accent` / `deepIndigo`
-  there if you want a different look.
-- Want an iOS version too? The Dart code is already cross-platform — just
-  also run `flutter create` targeting iOS and follow Apple's usual signing
-  steps; no code changes needed.
+  permission automatically the first time you pick media.
+- **Storage:** the app does **not** copy your videos or photos — it only
+  keeps a small thumbnail per item in its private storage. Deleting or moving
+  the original file elsewhere will cause that playlist item to be dropped
+  automatically the next time the app loads.
+- **Colors/branding:** the theme (`lib/main.dart`) uses an indigo/blue accent
+  scheme. Tweak `accent` / `deepIndigo` there if you want a different look.
