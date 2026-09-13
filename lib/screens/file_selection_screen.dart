@@ -23,6 +23,10 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
   bool _isNavigating = false;
   double _horizontalDragDelta = 0;
 
+  // Drag-reorder state
+  int? _draggingIndex;
+  int? _hoverIndex;
+
   @override
   void initState() {
     super.initState();
@@ -143,9 +147,19 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
     )
         .then((_) {
       _isNavigating = false;
-      // Refresh playlist upon returning in case anything changed
       _loadPlaylist();
     });
+  }
+
+  void _onDragAccept(int fromIndex, int toIndex) {
+    if (fromIndex == toIndex) return;
+    setState(() {
+      final item = _items.removeAt(fromIndex);
+      _items.insert(toIndex, item);
+      _draggingIndex = null;
+      _hoverIndex = null;
+    });
+    _service.savePlaylist(_items);
   }
 
   Widget _buildAddTile() {
@@ -196,56 +210,65 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
     );
   }
 
-  Widget _buildThumbnailTile(int index, MediaItem item) {
+  /// Thumbnail content reused for both the live tile and the drag feedback widget.
+  Widget _buildThumbnailContent(int index, MediaItem item,
+      {bool isDragging = false}) {
     final isImage = item.isImage;
     final thumbPath = item.thumbnailPath ?? item.filePath;
     final thumbFile = File(thumbPath);
 
-    return SizedBox(
-      key: ValueKey(item.id),
-      width: 112,
-      height: 112,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Thumbnail image or placeholder
-            GestureDetector(
-              onTap: isImage ? () => _openDurationPicker(index) : null,
-              child: Container(
-                color: const Color(0xFF1E143C),
-                child: thumbFile.existsSync()
-                    ? Image.file(
-                        thumbFile,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildFallbackThumbnail(item),
-                      )
-                    : _buildFallbackThumbnail(item),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Thumbnail image or placeholder
+          Container(
+            color: const Color(0xFF1E143C),
+            child: thumbFile.existsSync()
+                ? Image.file(
+                    thumbFile,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        _buildFallbackThumbnail(item),
+                  )
+                : _buildFallbackThumbnail(item),
+          ),
+
+          // Green border + white tint while being dragged
+          if (isDragging)
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.12),
+                border: Border.all(
+                  color: const Color(0xFF2ECC71),
+                  width: 2.5,
+                ),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
 
-            // Video center play glyph
-            if (!isImage)
-              Center(
-                child: IgnorePointer(
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.play_arrow,
-                      color: Colors.white,
-                      size: 22,
-                    ),
+          // Video play glyph
+          if (!isImage)
+            Center(
+              child: IgnorePointer(
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                    size: 22,
                   ),
                 ),
               ),
+            ),
 
-            // Delete trash chip (top-right)
+          // Delete button — hidden while dragging
+          if (!isDragging)
             Positioned(
               top: 5,
               right: 5,
@@ -268,76 +291,192 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
               ),
             ),
 
-            // Timer badge (images only, bottom-right)
-            if (isImage)
-              Positioned(
-                bottom: 5,
-                right: 5,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => _openDurationPicker(index),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: Colors.white24,
-                        width: 0.8,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.timer_outlined,
-                          size: 11,
-                          color: Colors.white70,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          _formatDuration(
-                            item.imageDuration ?? const Duration(seconds: 5),
-                          ),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-            // Order indicator (top-left)
+          // Timer badge — hidden while dragging
+          if (isImage && !isDragging)
             Positioned(
-              top: 5,
-              left: 5,
-              child: IgnorePointer(
+              bottom: 5,
+              right: 5,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _openDurationPicker(index),
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.65),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '#${index + 1}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                    color: Colors.black.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: Colors.white24,
+                      width: 0.8,
                     ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.timer_outlined,
+                        size: 11,
+                        color: Colors.white70,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        _formatDuration(
+                          item.imageDuration ?? const Duration(seconds: 5),
+                        ),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+
+          // Order number badge
+          Positioned(
+            top: 5,
+            left: 5,
+            child: IgnorePointer(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.65),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '#${index + 1}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildThumbnailTile(int index, MediaItem item) {
+    final isImage = item.isImage;
+    final isDraggingThis = _draggingIndex == index;
+    final isHoverTarget = _hoverIndex == index &&
+        _draggingIndex != null &&
+        _draggingIndex != index;
+
+    return DragTarget<int>(
+      key: ValueKey(item.id),
+      onWillAcceptWithDetails: (details) {
+        if (details.data != index) {
+          setState(() => _hoverIndex = index);
+        }
+        return details.data != index;
+      },
+      onLeave: (_) {
+        if (_hoverIndex == index) {
+          setState(() => _hoverIndex = null);
+        }
+      },
+      onAcceptWithDetails: (details) {
+        _onDragAccept(details.data, index);
+      },
+      builder: (context, candidateData, rejectedData) {
+        return AnimatedScale(
+          scale: isDraggingThis ? 0.85 : (isHoverTarget ? 1.06 : 1.0),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          child: AnimatedOpacity(
+            opacity: isDraggingThis ? 0.4 : 1.0,
+            duration: const Duration(milliseconds: 200),
+            child: Container(
+              decoration: isHoverTarget
+                  ? BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF2ECC71).withValues(alpha: 0.55),
+                          blurRadius: 14,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    )
+                  : null,
+              child: LongPressDraggable<int>(
+                data: index,
+                delay: const Duration(milliseconds: 300),
+                onDragStarted: () {
+                  setState(() {
+                    _draggingIndex = index;
+                    _hoverIndex = null;
+                  });
+                },
+                onDraggableCanceled: (_, __) {
+                  setState(() {
+                    _draggingIndex = null;
+                    _hoverIndex = null;
+                  });
+                },
+                onDragEnd: (_) {
+                  setState(() {
+                    _draggingIndex = null;
+                    _hoverIndex = null;
+                  });
+                },
+                // Floating drag feedback: 1.15x bigger with green glow
+                feedback: Transform.scale(
+                  scale: 1.15,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: SizedBox(
+                      width: 112,
+                      height: 112,
+                      child: Stack(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF2ECC71)
+                                      .withValues(alpha: 0.65),
+                                  blurRadius: 22,
+                                  spreadRadius: 4,
+                                ),
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.55),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                          ),
+                          _buildThumbnailContent(index, item, isDragging: true),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // While dragging, leave an empty placeholder slot
+                childWhenDragging: const SizedBox(width: 112, height: 112),
+                child: GestureDetector(
+                  onTap: isImage ? () => _openDurationPicker(index) : null,
+                  child: SizedBox(
+                    width: 112,
+                    height: 112,
+                    child: _buildThumbnailContent(index, item),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -401,7 +540,8 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
           _horizontalDragDelta += details.delta.dx;
         },
         onHorizontalDragEnd: (details) {
-          if (_items.isNotEmpty) {
+          // Only fire swipe-to-start when not dragging a tile
+          if (_items.isNotEmpty && _draggingIndex == null) {
             final velocity = details.primaryVelocity ?? 0;
             if (_horizontalDragDelta < -40 || velocity < -150) {
               _startWorkout();
@@ -440,7 +580,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Wrapping thumbnail grid
+                      // Thumbnail grid with drag-reorder
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -457,8 +597,8 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF1E143C).withValues(alpha: 0.35),
+                            color: const Color(0xFF1E143C)
+                                .withValues(alpha: 0.35),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: Colors.white10),
                           ),
@@ -507,8 +647,8 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF1E143C).withValues(alpha: 0.25),
+                            color: const Color(0xFF1E143C)
+                                .withValues(alpha: 0.25),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(color: Colors.white10),
                           ),
@@ -537,10 +677,10 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                 ),
               ),
 
-              // Start Workout bottom bar
+              // Start Cue bottom bar
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 20, vertical: 16),
                 decoration: const BoxDecoration(
                   color: Colors.black,
                   border: Border(
@@ -567,7 +707,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                       ),
                     ),
                     icon: const Icon(Icons.play_arrow_rounded, size: 28),
-                    label: const Text('Start Workout'),
+                    label: const Text('Start Cue'),
                   ),
                 ),
               ),

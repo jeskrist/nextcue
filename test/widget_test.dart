@@ -17,6 +17,6 @@ void main() {
     expect(find.byType(FileSelectionScreen), findsOneWidget);
     expect(find.text('Playlist'), findsOneWidget);
     expect(find.text('Add media'), findsOneWidget);
-    expect(find.text('Start Workout'), findsOneWidget);
+    expect(find.text('Start Cue'), findsOneWidget);
   });
 }

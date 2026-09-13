@@ -78,7 +78,7 @@ machine with Flutter installed.
    ```
    This writes all the launcher icon and splash screen resources into `android/`, `ios/`, and `web/`.
 
-7. **Run or build:**
+7. **Run or bworkoutuild:**
    ```bash
    flutter run                     # test on a connected device/emulator
    flutter build apk --release     # produces build/app/outputs/flutter-apk/app-release.apk

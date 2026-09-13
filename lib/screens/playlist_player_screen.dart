@@ -37,11 +37,13 @@ class _BackOverscrollPhysics extends PageScrollPhysics {
   double applyBoundaryConditions(ScrollMetrics position, double value) {
     final result = super.applyBoundaryConditions(position, value);
     // Detect dragging right at the start of the list.
-    if (position.pixels <= position.minScrollExtent && value < position.pixels) {
+    if (position.pixels <= position.minScrollExtent &&
+        value < position.pixels) {
       onOverscrollStart();
     }
     // Detect dragging left at the end of the list.
-    if (position.pixels >= position.maxScrollExtent && value > position.pixels) {
+    if (position.pixels >= position.maxScrollExtent &&
+        value > position.pixels) {
       onOverscrollEnd?.call();
     }
     return result;
@@ -124,7 +126,8 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
     _videoControllers.clear();
   }
 
-  Future<void> _initControllersForIndex(int index, {bool autoPlay = false}) async {
+  Future<void> _initControllersForIndex(int index,
+      {bool autoPlay = false}) async {
     // Clean up controllers that are far from index
     final keysToRemove = _videoControllers.keys
         .where((i) => i < index - 1 || i > index + 1)
@@ -298,17 +301,18 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                     onPageChanged: _onPageChanged,
                     physics: _BackOverscrollPhysics(
                       onOverscrollStart: _handleBackSwipe,
-                      onOverscrollEnd: widget.playlist.length == 1
-                          ? _handleBackSwipe
-                          : null,
+                      onOverscrollEnd:
+                          widget.playlist.length == 1 ? _handleBackSwipe : null,
                     ),
                     itemBuilder: (context, index) {
                       final item = widget.playlist[index];
                       if (item.isVideo) {
                         final controller = _videoControllers[index];
-                        if (controller == null || !controller.value.isInitialized) {
+                        if (controller == null ||
+                            !controller.value.isInitialized) {
                           return const Center(
-                            child: CircularProgressIndicator(color: Colors.white70),
+                            child: CircularProgressIndicator(
+                                color: Colors.white70),
                           );
                         }
                         return SingleVideoPlayerView(
@@ -327,8 +331,8 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                             setState(() {});
                           },
                           onSkip: (sec) {
-                            final target =
-                                controller.value.position + Duration(seconds: sec);
+                            final target = controller.value.position +
+                                Duration(seconds: sec);
                             final dur = controller.value.duration;
                             final clamped = target < Duration.zero
                                 ? Duration.zero
@@ -354,7 +358,8 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                           key: key,
                           item: item,
                           autoStart: false,
-                          onPlayingChanged: (playing) => _updateWakelock(playing),
+                          onPlayingChanged: (playing) =>
+                              _updateWakelock(playing),
                           onFinish: () => _handleItemNaturalFinish(index),
                         );
                       }
@@ -364,84 +369,78 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
               ],
             ),
 
-            // Workout Completed Overlay
+            // Cue Completed Overlay
             if (_isFinished)
               Container(
                 color: Colors.black.withValues(alpha: 0.88),
-                alignment: Alignment.center,
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                child: Stack(
                   children: [
-                    Container(
-                      width: 84,
-                      height: 84,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF2ECC71),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.check_rounded,
-                        size: 56,
-                        color: Colors.white,
+                    Positioned(
+                      top: 8,
+                      left: 12,
+                      child: IconButton(
+                        icon: const Icon(Icons.close_rounded, color: Colors.white),
+                        tooltip: 'Exit to playlist',
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Workout Complete!',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Great job! You completed all steps in your daily routine.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white70,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: _restartPlaylist,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white38),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 14,
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 84,
+                              height: 84,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF2ECC71),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.check_rounded,
+                                size: 56,
+                                color: Colors.white,
+                              ),
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                            const SizedBox(height: 24),
+                            const Text(
+                              'Cue Complete!',
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                          icon: const Icon(Icons.replay),
-                          label: const Text('Restart'),
+                            const SizedBox(height: 10),
+                            const Text(
+                              'Welcome to the end of Your Cue... Thank you for playing.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white70,
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            ElevatedButton.icon(
+                              onPressed: _restartPlaylist,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2ECC71),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 28,
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              icon: const Icon(Icons.replay),
+                              label: const Text('Restart'),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 16),
-                        ElevatedButton.icon(
-                          onPressed: () => Navigator.of(context).pop(),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2ECC71),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 14,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          icon: const Icon(Icons.done_all_rounded),
-                          label: const Text('Finish'),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -455,7 +454,8 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
   Widget _buildTopBar() {
     final total = widget.playlist.length;
     final current = _currentIndex + 1;
-    final item = widget.playlist.isNotEmpty ? widget.playlist[_currentIndex] : null;
+    final item =
+        widget.playlist.isNotEmpty ? widget.playlist[_currentIndex] : null;
 
     return Container(
       color: Colors.black,
