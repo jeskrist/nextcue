@@ -80,6 +80,8 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
   bool _wakelockEnabled = false;
   bool _isFinished = false;
   bool _hasPopped = false;
+  bool _videoWasPlaying = false;
+  bool _isScrubbing = false;
 
   void _handleBackSwipe() {
     if (_currentIndex == 0 && !_hasPopped && mounted) {
@@ -158,6 +160,15 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
     if (_videoControllers.containsKey(index)) {
       final controller = _videoControllers[index]!;
       if (autoPlay && !controller.value.isPlaying) {
+        final pos = controller.value.position;
+        final dur = controller.value.duration;
+        if (dur > Duration.zero &&
+            (controller.value.isCompleted ||
+                pos >= dur ||
+                (dur - pos).inMilliseconds < 250)) {
+          await controller.seekTo(Duration.zero);
+        }
+        _videoWasPlaying = true;
         controller.play();
       }
       return controller;
@@ -173,6 +184,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
       controller.addListener(() => _onVideoControllerUpdate(index));
 
       if (mounted && autoPlay && _currentIndex == index) {
+        _videoWasPlaying = true;
         controller.play();
       }
       if (mounted) setState(() {});
@@ -190,16 +202,24 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
     final controller = _videoControllers[index];
     if (controller == null || !controller.value.isInitialized) return;
 
-    _updateWakelock(controller.value.isPlaying);
+    final isPlaying = controller.value.isPlaying;
+    _updateWakelock(isPlaying);
 
-    // Check natural finish
+    if (isPlaying) {
+      _videoWasPlaying = true;
+    }
+
+    // Check natural finish: only trigger if playback was active and naturally reached the end
     final position = controller.value.position;
     final duration = controller.value.duration;
 
-    if (duration > Duration.zero &&
-        position >= duration &&
-        !controller.value.isPlaying &&
+    if (!_isScrubbing &&
+        duration > Duration.zero &&
+        (controller.value.isCompleted || position >= duration) &&
+        !isPlaying &&
+        _videoWasPlaying &&
         !_isAutoAdvancing) {
+      _videoWasPlaying = false;
       _handleItemNaturalFinish(index);
     }
 
@@ -218,6 +238,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
   }
 
   void _pauseCurrentMedia() {
+    _videoWasPlaying = false;
     if (_currentIndex < widget.playlist.length) {
       final currentItem = widget.playlist[_currentIndex];
       if (currentItem.isVideo) {
@@ -259,6 +280,8 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
 
     final shouldAutoPlay = _isNextAutoStart;
     _isNextAutoStart = false; // Reset auto play trigger
+    _videoWasPlaying = shouldAutoPlay;
+    _isScrubbing = false;
 
     setState(() {
       _currentIndex = index;
@@ -279,7 +302,12 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
     setState(() {
       _isFinished = false;
       _isNextAutoStart = false;
+      _videoWasPlaying = false;
+      _isScrubbing = false;
     });
+    for (final c in _videoControllers.values) {
+      c.seekTo(Duration.zero);
+    }
     _pageController.jumpToPage(0);
     _onPageChanged(0);
   }
@@ -300,7 +328,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                     itemCount: widget.playlist.length,
                     onPageChanged: _onPageChanged,
                     physics: _BackOverscrollPhysics(
-                      onOverscrollStart: _handleBackSwipe,
+                       onOverscrollStart: _handleBackSwipe,
                       onOverscrollEnd:
                           widget.playlist.length == 1 ? _handleBackSwipe : null,
                     ),
@@ -317,33 +345,55 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                         }
                         return SingleVideoPlayerView(
                           controller: controller,
-                          onTogglePlayPause: () {
-                            setState(() {
-                              if (controller.value.isPlaying) {
-                                controller.pause();
-                              } else {
-                                controller.play();
+                          onTogglePlayPause: () async {
+                            if (controller.value.isPlaying) {
+                              _videoWasPlaying = false;
+                              await controller.pause();
+                            } else {
+                              final pos = controller.value.position;
+                              final dur = controller.value.duration;
+                              if (dur > Duration.zero &&
+                                  (controller.value.isCompleted ||
+                                      pos >= dur ||
+                                      (dur - pos).inMilliseconds < 250)) {
+                                await controller.seekTo(Duration.zero);
                               }
-                            });
+                              _videoWasPlaying = true;
+                              await controller.play();
+                            }
+                            if (mounted) setState(() {});
                           },
-                          onRestart: () {
-                            controller.seekTo(Duration.zero);
-                            setState(() {});
+                          onRestart: () async {
+                            await controller.seekTo(Duration.zero);
+                            if (mounted) setState(() {});
                           },
-                          onSkip: (sec) {
+                          onSkip: (sec) async {
                             final target = controller.value.position +
                                 Duration(seconds: sec);
                             final dur = controller.value.duration;
                             final clamped = target < Duration.zero
                                 ? Duration.zero
                                 : (target > dur ? dur : target);
-                            controller.seekTo(clamped);
-                            setState(() {});
+                            await controller.seekTo(clamped);
+                            if (mounted) setState(() {});
                           },
-                          onSeek: (pos) => controller.seekTo(pos),
+                          onSeek: (_) {
+                            // The seek was already fully awaited inside
+                            // SingleVideoPlayerView.onChangeEnd before play() is
+                            // called. Calling controller.seekTo here again would
+                            // fire an unawaited seek that races with play() and
+                            // intermittently leaves the video stuck paused.
+                          },
                           onPauseOnTap: () {
                             if (controller.value.isPlaying) {
+                              _videoWasPlaying = false;
                               setState(() => controller.pause());
+                            }
+                          },
+                          onScrubbingChanged: (scrubbing) {
+                            _isScrubbing = scrubbing;
+                            if (scrubbing) {
+                              _videoWasPlaying = false;
                             }
                           },
                         );
