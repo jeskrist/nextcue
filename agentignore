@@ -1,0 +1,32 @@
+# Excludes for agent context (check Antigravity's workspace settings for the exact
+# mechanism/filename it uses in your version — this is the general idea either way).
+
+# Dependencies
+node_modules/
+vendor/
+.venv/
+
+# Build output
+dist/
+build/
+*.min.js
+
+# Generated / vendored code
+src/generated/
+proto/gen/
+
+# Large data & fixtures not needed for reasoning about code
+data/
+fixtures/*.json
+*.csv
+*.parquet
+
+# Logs and caches
+*.log
+.cache/
+coverage/
+
+# Lockfiles (large, rarely relevant to a coding task)
+package-lock.json
+yarn.lock
+poetry.lock
