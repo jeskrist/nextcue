@@ -94,7 +94,7 @@ class _DurationPickerSheetState extends State<DurationPickerSheet> {
                   child: const Text(
                     'Done',
                     style: TextStyle(
-                      color: Color(0xFF2ECC71),
+                      color: Color(0xFF387FCF),
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),

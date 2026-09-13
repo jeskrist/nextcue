@@ -172,7 +172,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
           color: const Color(0xFF1E143C).withValues(alpha: 0.6),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF2ECC71).withValues(alpha: 0.5),
+            color: const Color(0xFF387FCF).withValues(alpha: 0.5),
             width: 1.8,
           ),
         ),
@@ -185,14 +185,14 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                 height: 28,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: Color(0xFF2ECC71),
+                  color: Color(0xFF387FCF),
                 ),
               )
             else ...[
               const Icon(
                 Icons.add_rounded,
                 size: 38,
-                color: Color(0xFF2ECC71),
+                color: Color(0xFF387FCF),
               ),
               const SizedBox(height: 4),
               const Text(
@@ -235,13 +235,13 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                 : _buildFallbackThumbnail(item),
           ),
 
-          // Green border + white tint while being dragged
+          // Blue border + white tint while being dragged
           if (isDragging)
             Container(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.12),
                 border: Border.all(
-                  color: const Color(0xFF2ECC71),
+                  color: const Color(0xFF387FCF),
                   width: 2.5,
                 ),
                 borderRadius: BorderRadius.circular(12),
@@ -400,7 +400,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF2ECC71).withValues(alpha: 0.55),
+                          color: const Color(0xFF387FCF).withValues(alpha: 0.55),
                           blurRadius: 14,
                           spreadRadius: 2,
                         ),
@@ -428,7 +428,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                     _hoverIndex = null;
                   });
                 },
-                // Floating drag feedback: 1.15x bigger with green glow
+                // Floating drag feedback: 1.15x bigger with blue glow
                 feedback: Transform.scale(
                   scale: 1.15,
                   child: Material(
@@ -443,7 +443,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF2ECC71)
+                                  color: const Color(0xFF387FCF)
                                       .withValues(alpha: 0.65),
                                   blurRadius: 22,
                                   spreadRadius: 4,
@@ -492,7 +492,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFF2ECC71);
+    const accent = Color(0xFF387FCF);
 
     if (_loading) {
       return const Scaffold(

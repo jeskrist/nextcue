@@ -14,8 +14,8 @@ void main() {
 class DailyWorkoutApp extends StatelessWidget {
   const DailyWorkoutApp({super.key});
 
-  // Colors picked to match the app icon (deep indigo -> hot orange-red).
-  static const Color accent = Color(0xFFFF5A3C);
+  // Primary accent color
+  static const Color accent = Color(0xFF387FCF);
   static const Color deepIndigo = Color(0xFF1E143C);
 
   @override

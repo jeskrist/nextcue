@@ -394,7 +394,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                               width: 84,
                               height: 84,
                               decoration: const BoxDecoration(
-                                color: Color(0xFF2ECC71),
+                                color: Color(0xFF387FCF),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -425,7 +425,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                             ElevatedButton.icon(
                               onPressed: _restartPlaylist,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF2ECC71),
+                                backgroundColor: const Color(0xFF387FCF),
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 28,
@@ -483,7 +483,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                   Icon(
                     item?.isVideo ?? false ? Icons.videocam : Icons.photo,
                     size: 15,
-                    color: const Color(0xFF2ECC71),
+                    color: const Color(0xFF387FCF),
                   ),
                   const SizedBox(width: 6),
                   Text(

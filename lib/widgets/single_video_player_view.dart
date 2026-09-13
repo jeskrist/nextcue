@@ -70,7 +70,7 @@ class SingleVideoPlayerView extends StatelessWidget {
           size: 92,
           tooltip: 'Resume',
           filled: true,
-          fillColor: const Color(0xFF2ECC71),
+          fillColor: const Color(0xFF387FCF),
           onPressed: onTogglePlayPause,
         ),
         const SizedBox(height: 24),
