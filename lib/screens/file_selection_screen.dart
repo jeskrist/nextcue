@@ -134,9 +134,12 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
     return '$mm:$ss';
   }
 
-  void _startPlayback() {
+  void _startPlayback({bool clearProgress = false}) {
     if (_items.isEmpty || _isNavigating) return;
     _isNavigating = true;
+    if (clearProgress) {
+      PlaylistPlayerScreen.clearPlaybackState();
+    }
     Navigator.of(context)
         .push(
       MaterialPageRoute(
@@ -550,7 +553,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
           if (_items.isNotEmpty && _draggingIndex == null) {
             final velocity = details.primaryVelocity ?? 0;
             if (_horizontalDragDelta < -40 || velocity < -150) {
-              _startPlayback();
+              _startPlayback(clearProgress: false);
             }
           }
           _horizontalDragDelta = 0;
@@ -698,7 +701,9 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton.icon(
-                    onPressed: _items.isNotEmpty ? _startPlayback : null,
+                    onPressed: _items.isNotEmpty
+                        ? () => _startPlayback(clearProgress: true)
+                        : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accent,
                       disabledBackgroundColor: Colors.white12,

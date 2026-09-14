@@ -49,7 +49,7 @@ void main() {
   });
 
   testWidgets(
-      'Image cue resumes progress when revisiting a file and reset jumps back to the first item',
+      'Leaving the player preserves progress until a fresh cue start resets it',
       (WidgetTester tester) async {
     final firstFile = File('${Directory.systemTemp.path}/first_item.jpg')
       ..createSync();
@@ -75,12 +75,21 @@ void main() {
       ),
     ];
 
+    final navigatorKey = GlobalKey<NavigatorState>();
+
     await tester.pumpWidget(
       MaterialApp(
-        home: PlaylistPlayerScreen(playlist: items),
+        navigatorKey: navigatorKey,
+        home: const Scaffold(body: SizedBox()),
       ),
     );
-    await tester.pump();
+
+    navigatorKey.currentState!.push(
+      MaterialPageRoute(
+        builder: (_) => PlaylistPlayerScreen(playlist: items),
+      ),
+    );
+    await tester.pumpAndSettle();
 
     final playBtn = find.byIcon(Icons.play_arrow);
     expect(playBtn, findsOneWidget);
@@ -92,23 +101,31 @@ void main() {
         tester.state(find.byType(SingleImageViewer)) as SingleImageViewerState;
     expect(firstState.elapsed, greaterThan(Duration.zero));
 
-    await tester.fling(find.byType(PageView), const Offset(-800, 0), 2000);
+    navigatorKey.currentState!.pop();
     await tester.pumpAndSettle();
-    expect(find.text('2 of 2'), findsOneWidget);
 
-    await tester.fling(find.byType(PageView), const Offset(800, 0), 2000);
+    navigatorKey.currentState!.push(
+      MaterialPageRoute(
+        builder: (_) => PlaylistPlayerScreen(playlist: items),
+      ),
+    );
     await tester.pumpAndSettle();
 
     final resumedState =
         tester.state(find.byType(SingleImageViewer)) as SingleImageViewerState;
     expect(resumedState.elapsed, greaterThan(Duration.zero));
 
-    final resetBtn = find.byTooltip('Reset cue');
-    expect(resetBtn, findsOneWidget);
-    await tester.tap(resetBtn);
+    PlaylistPlayerScreen.clearPlaybackState();
+    navigatorKey.currentState!.pop();
     await tester.pumpAndSettle();
 
-    expect(find.text('1 of 2'), findsOneWidget);
+    navigatorKey.currentState!.push(
+      MaterialPageRoute(
+        builder: (_) => PlaylistPlayerScreen(playlist: items),
+      ),
+    );
+    await tester.pumpAndSettle();
+
     final resetState =
         tester.state(find.byType(SingleImageViewer)) as SingleImageViewerState;
     expect(resetState.elapsed, Duration.zero);

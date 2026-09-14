@@ -52,6 +52,8 @@ class _BackOverscrollPhysics extends PageScrollPhysics {
 }
 
 class PlaylistPlayerScreen extends StatefulWidget {
+  static final Map<String, Duration> _playbackProgress = {};
+
   final List<MediaItem> playlist;
   final int initialIndex;
 
@@ -60,6 +62,10 @@ class PlaylistPlayerScreen extends StatefulWidget {
     required this.playlist,
     this.initialIndex = 0,
   });
+
+  static void clearPlaybackState() {
+    _playbackProgress.clear();
+  }
 
   @override
   State<PlaylistPlayerScreen> createState() => _PlaylistPlayerScreenState();
@@ -88,6 +94,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
   void _handleBackSwipe() {
     if (_currentIndex == 0 && !_hasPopped && mounted) {
       _hasPopped = true;
+      _saveCurrentProgress(_currentIndex);
       Navigator.of(context).pop();
     }
   }
@@ -96,6 +103,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _savedPositions.addAll(PlaylistPlayerScreen._playbackProgress);
     _currentIndex = widget.initialIndex.clamp(0, widget.playlist.length - 1);
     _pageController = PageController(initialPage: _currentIndex);
 
@@ -104,6 +112,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
 
   @override
   void dispose() {
+    _saveCurrentProgress(_currentIndex);
     WidgetsBinding.instance.removeObserver(this);
     _pageController.dispose();
     _disposeAllControllers();
@@ -254,7 +263,9 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
       if (controller != null && controller.value.isInitialized) {
         final duration = controller.value.duration;
         final position = controller.value.position;
-        _savedPositions[item.id] = _clampDuration(position, duration);
+        final saved = _clampDuration(position, duration);
+        _savedPositions[item.id] = saved;
+        PlaylistPlayerScreen._playbackProgress[item.id] = saved;
       }
       return;
     }
@@ -262,6 +273,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
     final imageState = _imageViewerKeys[index]?.currentState;
     if (imageState != null) {
       _savedPositions[item.id] = imageState.elapsed;
+      PlaylistPlayerScreen._playbackProgress[item.id] = imageState.elapsed;
     }
   }
 
@@ -307,7 +319,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
     if (index < 0 || index >= widget.playlist.length) return;
 
     final item = widget.playlist[index];
-    final saved = _savedPositions[item.id];
+    final saved = _savedPositions[item.id] ?? PlaylistPlayerScreen._playbackProgress[item.id];
 
     if (item.isVideo) {
       final controller =
@@ -366,6 +378,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
 
   void _resetCue() {
     _savedPositions.clear();
+    PlaylistPlayerScreen.clearPlaybackState();
     for (final controller in _videoControllers.values) {
       controller.pause();
       controller.seekTo(Duration.zero);
@@ -389,6 +402,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
 
   void _restartPlaylist() {
     _savedPositions.clear();
+    PlaylistPlayerScreen.clearPlaybackState();
     setState(() {
       _isFinished = false;
       _isNextAutoStart = false;
@@ -514,6 +528,8 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                             key: key,
                             item: item,
                             autoStart: false,
+                            initialElapsed:
+                                _savedPositions[item.id] ?? Duration.zero,
                             onPlayingChanged: (playing) =>
                                 _updateWakelock(playing),
                             onFinish: () => _handleItemNaturalFinish(index),
