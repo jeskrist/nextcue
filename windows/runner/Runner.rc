@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "daily_workout" "\0"
+            VALUE "FileDescription", "NextCue" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "daily_workout" "\0"
+            VALUE "InternalName", "nextcue" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "daily_workout.exe" "\0"
-            VALUE "ProductName", "daily_workout" "\0"
+            VALUE "OriginalFilename", "nextcue.exe" "\0"
+            VALUE "ProductName", "NextCue" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

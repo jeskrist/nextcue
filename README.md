@@ -1,9 +1,9 @@
-# NextCue 🏋️‍♂️
+# NextCue 🎬
 
 One playlist app, endless uses. Queue up to 10 clips or photos, play them
 hands-free, and it remembers your playlist between launches — built for
-sweaty-hands situations like workouts where you don't want to touch the
-screen mid-set.
+situations where you want seamless playback without touching the screen
+mid-routine (practice sessions, workout routines, tutorials, and more).
 
 
 ## Features

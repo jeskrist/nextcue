@@ -9,7 +9,7 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 
 class FakeVideoPlayerPlatform extends VideoPlayerPlatform {
   final StreamController<VideoEvent> _eventStreamController =
-      StreamController<VideoEvent>();
+      StreamController<VideoEvent>.broadcast();
 
   Duration currentPosition = Duration.zero;
   bool isPlaying = false;

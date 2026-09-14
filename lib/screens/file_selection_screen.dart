@@ -134,7 +134,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
     return '$mm:$ss';
   }
 
-  void _startWorkout() {
+  void _startPlayback() {
     if (_items.isEmpty || _isNavigating) return;
     _isNavigating = true;
     Navigator.of(context)
@@ -544,7 +544,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
           if (_items.isNotEmpty && _draggingIndex == null) {
             final velocity = details.primaryVelocity ?? 0;
             if (_horizontalDragDelta < -40 || velocity < -150) {
-              _startWorkout();
+              _startPlayback();
             }
           }
           _horizontalDragDelta = 0;
@@ -605,13 +605,13 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                           child: Column(
                             children: [
                               const Icon(
-                                Icons.fitness_center_rounded,
+                                Icons.playlist_play_rounded,
                                 size: 52,
                                 color: Colors.white38,
                               ),
                               const SizedBox(height: 14),
                               const Text(
-                                'Your workout is empty',
+                                'Your playlist is empty',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -691,7 +691,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton.icon(
-                    onPressed: _items.isNotEmpty ? _startWorkout : null,
+                    onPressed: _items.isNotEmpty ? _startPlayback : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accent,
                       disabledBackgroundColor: Colors.white12,

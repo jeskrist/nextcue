@@ -6,17 +6,17 @@ void main() {
     test('serializes and deserializes video item correctly', () {
       const item = MediaItem(
         id: 'test-video-id',
-        filePath: '/path/to/workout.mp4',
+        filePath: '/path/to/media.mp4',
         type: MediaType.video,
-        thumbnailPath: '/path/to/workout_thumb.jpg',
+        thumbnailPath: '/path/to/media_thumb.jpg',
       );
 
       final json = item.toJson();
       expect(json['id'], 'test-video-id');
-      expect(json['filePath'], '/path/to/workout.mp4');
+      expect(json['filePath'], '/path/to/media.mp4');
       expect(json['type'], 'video');
       expect(json['imageDurationMs'], isNull);
-      expect(json['thumbnailPath'], '/path/to/workout_thumb.jpg');
+      expect(json['thumbnailPath'], '/path/to/media_thumb.jpg');
 
       final deserialized = MediaItem.fromJson(json);
       expect(deserialized.id, item.id);

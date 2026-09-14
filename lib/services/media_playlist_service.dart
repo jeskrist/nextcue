@@ -25,19 +25,50 @@ class MediaPlaylistService {
     '.wmv',
   };
 
-  /// Returns the permanent folder where workout media and thumbnails are stored.
+  /// Returns the permanent folder where media thumbnails and cache are stored.
+  /// Automatically migrates any legacy `workout_media` folder if found.
   Future<Directory> getMediaDirectory() async {
     final appDir = await getApplicationDocumentsDirectory();
-    final mediaDir = Directory('${appDir.path}/workout_media');
-    if (!await mediaDir.exists()) {
+    final mediaDir = Directory('${appDir.path}/nextcue_media');
+    final legacyDir = Directory('${appDir.path}/workout_media');
+
+    if (await legacyDir.exists()) {
+      if (!await mediaDir.exists()) {
+        try {
+          await legacyDir.rename(mediaDir.path);
+        } catch (_) {
+          await mediaDir.create(recursive: true);
+          await _copyDirectory(legacyDir, mediaDir);
+          try {
+            await legacyDir.delete(recursive: true);
+          } catch (_) {}
+        }
+      } else {
+        await _copyDirectory(legacyDir, mediaDir);
+        try {
+          await legacyDir.delete(recursive: true);
+        } catch (_) {}
+      }
+    } else if (!await mediaDir.exists()) {
       await mediaDir.create(recursive: true);
     }
     return mediaDir;
   }
 
+  Future<void> _copyDirectory(Directory source, Directory destination) async {
+    await for (final entity in source.list(recursive: false)) {
+      if (entity is File) {
+        final newPath = '${destination.path}/${entity.uri.pathSegments.last}';
+        try {
+          await entity.copy(newPath);
+        } catch (_) {}
+      }
+    }
+  }
+
   /// Loads the saved playlist.
   /// Filters out items whose files no longer exist on disk.
-  /// Automatically migrates any legacy single-video path if present.
+  /// Automatically migrates any legacy single-video path or thumbnail folder if present.
   Future<List<MediaItem>> loadPlaylist() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonStr = prefs.getString(_playlistKey);
@@ -69,6 +100,19 @@ class MediaPlaylistService {
       }
     }
 
+    // Check and migrate legacy thumbnail paths in items
+    bool itemsMigrated = false;
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
+      if (item.thumbnailPath != null &&
+          item.thumbnailPath!.contains('/workout_media/')) {
+        final updatedThumbnailPath = item.thumbnailPath!
+            .replaceAll('/workout_media/', '/nextcue_media/');
+        items[i] = item.copyWith(thumbnailPath: updatedThumbnailPath);
+        itemsMigrated = true;
+      }
+    }
+
     // Verify files exist on disk; clean up orphaned thumbnails for stale entries
     final validItems = <MediaItem>[];
     for (final item in items) {
@@ -80,8 +124,8 @@ class MediaPlaylistService {
       }
     }
 
-    // If any items were removed due to missing files, update persistent storage
-    if (validItems.length != items.length || jsonStr == null) {
+    // If any items were removed due to missing files or paths migrated, update persistent storage
+    if (validItems.length != items.length || jsonStr == null || itemsMigrated) {
       await savePlaylist(validItems);
     }
 

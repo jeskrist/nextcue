@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:nextcue/models/media_item.dart';
 import 'package:nextcue/services/media_playlist_service.dart';
@@ -16,7 +17,7 @@ void main() {
     });
 
     test('detectMediaType detects videos correctly', () {
-      expect(service.detectMediaType('/storage/workout.mp4'), MediaType.video);
+      expect(service.detectMediaType('/storage/media.mp4'), MediaType.video);
       expect(service.detectMediaType('video.MOV'), MediaType.video);
       expect(service.detectMediaType('exercise.MKV'), MediaType.video);
       expect(service.detectMediaType('clip.webm'), MediaType.video);
@@ -58,6 +59,31 @@ void main() {
       expect(decoded[0]['type'], 'video');
       expect(decoded[1]['id'], 'item-2');
       expect(decoded[1]['imageDurationMs'], 10000);
+    });
+
+    test('loadPlaylist rewrites legacy workout_media thumbnail paths', () async {
+      final tempFile = File('${Directory.systemTemp.path}/test_migrated.mp4')
+        ..createSync();
+      addTearDown(() {
+        if (tempFile.existsSync()) tempFile.deleteSync();
+      });
+
+      SharedPreferences.setMockInitialValues({
+        'nextcue_playlist': jsonEncode([
+          {
+            'id': 'legacy-item',
+            'filePath': tempFile.path,
+            'type': 'video',
+            'thumbnailPath': '/app/documents/workout_media/legacy-item_thumb.jpg',
+          }
+        ]),
+      });
+
+      final loaded = await service.loadPlaylist();
+      expect(loaded.length, 1);
+      expect(loaded.first.thumbnailPath, isNotNull);
+      expect(loaded.first.thumbnailPath!.contains('/workout_media/'), isFalse);
+      expect(loaded.first.thumbnailPath!.contains('/nextcue_media/'), isTrue);
     });
   });
 }

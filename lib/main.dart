@@ -8,11 +8,11 @@ import 'services/media_playlist_service.dart';
 void main() {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  runApp(const DailyWorkoutApp());
+  runApp(const NextCueApp());
 }
 
-class DailyWorkoutApp extends StatelessWidget {
-  const DailyWorkoutApp({super.key});
+class NextCueApp extends StatelessWidget {
+  const NextCueApp({super.key});
 
   // Primary accent color
   static const Color accent = Color(0xFF387FCF);
