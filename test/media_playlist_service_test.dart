@@ -78,7 +78,8 @@ void main() {
       });
     });
 
-    test('loadPlaylist rewrites legacy workout_media thumbnail paths', () async {
+    test('loadPlaylist rewrites legacy workout_media thumbnail paths',
+        () async {
       final tempFile = File('${Directory.systemTemp.path}/test_migrated.mp4')
         ..createSync();
       addTearDown(() {
@@ -91,7 +92,8 @@ void main() {
             'id': 'legacy-item',
             'filePath': tempFile.path,
             'type': 'video',
-            'thumbnailPath': '/app/documents/workout_media/legacy-item_thumb.jpg',
+            'thumbnailPath':
+                '/app/documents/workout_media/legacy-item_thumb.jpg',
           }
         ]),
       });

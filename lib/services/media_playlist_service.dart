@@ -172,7 +172,8 @@ class MediaPlaylistService {
   Future<void> savePlaybackProgress(Map<String, Duration> progress) async {
     final prefs = await SharedPreferences.getInstance();
     final encoded = <String, int>{
-      for (final entry in progress.entries) entry.key: entry.value.inMilliseconds,
+      for (final entry in progress.entries)
+        entry.key: entry.value.inMilliseconds,
     };
     await prefs.setString(_playbackProgressKey, jsonEncode(encoded));
   }
