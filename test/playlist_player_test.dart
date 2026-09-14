@@ -9,7 +9,8 @@ import 'package:nextcue/widgets/single_image_viewer.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Cue Complete overlay has Restart and Close buttons, but no Finish button',
+  testWidgets(
+      'Cue Complete overlay has Restart and Close buttons, but no Finish button',
       (WidgetTester tester) async {
     final tempFile = File('${Directory.systemTemp.path}/test_item.jpg')
       ..createSync();
@@ -47,7 +48,8 @@ void main() {
     expect(find.byIcon(Icons.close_rounded), findsWidgets);
   });
 
-  testWidgets('Image cue resumes progress when revisiting a file and reset jumps back to the first item',
+  testWidgets(
+      'Image cue resumes progress when revisiting a file and reset jumps back to the first item',
       (WidgetTester tester) async {
     final firstFile = File('${Directory.systemTemp.path}/first_item.jpg')
       ..createSync();
@@ -86,8 +88,8 @@ void main() {
     await tester.pump();
 
     await tester.pump(const Duration(milliseconds: 400));
-    final firstState = tester.state(find.byType(SingleImageViewer))
-        as SingleImageViewerState;
+    final firstState =
+        tester.state(find.byType(SingleImageViewer)) as SingleImageViewerState;
     expect(firstState.elapsed, greaterThan(Duration.zero));
 
     await tester.fling(find.byType(PageView), const Offset(-800, 0), 2000);
@@ -97,8 +99,8 @@ void main() {
     await tester.fling(find.byType(PageView), const Offset(800, 0), 2000);
     await tester.pumpAndSettle();
 
-    final resumedState = tester.state(find.byType(SingleImageViewer))
-        as SingleImageViewerState;
+    final resumedState =
+        tester.state(find.byType(SingleImageViewer)) as SingleImageViewerState;
     expect(resumedState.elapsed, greaterThan(Duration.zero));
 
     final resetBtn = find.byTooltip('Reset cue');
@@ -107,8 +109,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('1 of 2'), findsOneWidget);
-    final resetState = tester.state(find.byType(SingleImageViewer))
-        as SingleImageViewerState;
+    final resetState =
+        tester.state(find.byType(SingleImageViewer)) as SingleImageViewerState;
     expect(resetState.elapsed, Duration.zero);
   });
 }

@@ -310,7 +310,8 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
     final saved = _savedPositions[item.id];
 
     if (item.isVideo) {
-      final controller = await _ensureVideoController(index, autoPlay: autoPlay);
+      final controller =
+          await _ensureVideoController(index, autoPlay: autoPlay);
       if (!controller.value.isInitialized) return;
 
       final duration = controller.value.duration;
@@ -657,10 +658,40 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
               ),
             ),
           ),
-          IconButton(
-            onPressed: _resetCue,
-            tooltip: 'Reset cue',
-            icon: const Icon(Icons.restart_alt_rounded, color: Colors.white),
+          Tooltip(
+            message: 'Reset cue',
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _resetCue,
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: primary.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.restart_alt_rounded,
+                          color: Colors.white, size: 16),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'Reset cue',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
