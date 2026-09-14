@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -20,6 +21,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
   List<MediaItem> _items = [];
   bool _loading = true;
   bool _importing = false;
+  bool _keepPlaybackProgress = true;
   bool _isNavigating = false;
   double _horizontalDragDelta = 0;
 
@@ -30,7 +32,25 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
   @override
   void initState() {
     super.initState();
+    _loadSettings();
     _loadPlaylist();
+  }
+
+  Future<void> _loadSettings() async {
+    final keepPlaybackProgress = await _service.getKeepPlaybackProgress();
+    if (mounted) {
+      setState(() => _keepPlaybackProgress = keepPlaybackProgress);
+    }
+  }
+
+  Future<void> _toggleKeepPlaybackProgress(bool value) async {
+    setState(() => _keepPlaybackProgress = value);
+    await _service.setKeepPlaybackProgress(value);
+
+    if (!value) {
+      PlaylistPlayerScreen.clearPlaybackState();
+      await _service.clearPlaybackProgress();
+    }
   }
 
   Future<void> _loadPlaylist() async {
@@ -137,8 +157,11 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
   void _startPlayback({bool clearProgress = false}) {
     if (_items.isEmpty || _isNavigating) return;
     _isNavigating = true;
-    if (clearProgress) {
+    if (clearProgress || !_keepPlaybackProgress) {
       PlaylistPlayerScreen.clearPlaybackState();
+      if (!_keepPlaybackProgress) {
+        unawaited(_service.clearPlaybackProgress());
+      }
     }
     Navigator.of(context)
         .push(
@@ -587,6 +610,38 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                           height: 1.4,
                         ),
                       ),
+                      const SizedBox(height: 24),
+                      Material(
+                        color: deepIndigo.withValues(alpha: 0.3),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: const BorderSide(color: Colors.white10),
+                        ),
+                        child: SwitchListTile.adaptive(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          activeColor: accent,
+                          title: const Text(
+                            'Keep player positions',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: const Text(
+                            'Resume where you left off even after the app closes.',
+                            style: TextStyle(
+                              color: Colors.white60,
+                              fontSize: 12,
+                            ),
+                          ),
+                          value: _keepPlaybackProgress,
+                          onChanged: _toggleKeepPlaybackProgress,
+                        ),
+                      ),
+
                       const SizedBox(height: 24),
 
                       // Thumbnail grid with drag-reorder

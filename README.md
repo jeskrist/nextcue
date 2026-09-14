@@ -28,6 +28,9 @@ mid-routine (practice sessions, workout routines, tutorials, and more).
 - **Swipe between items mid-playback** — page left/right to jump to a
   different item at any time; active videos or image timers are automatically
   paused as soon as you begin swiping.
+- **Keep player positions** — a toggle on the playlist screen lets you keep
+  each file's last play position even after the app is closed, then resume from
+  there automatically on the next launch.
 - **Resume where you left off** — when you swipe back to a file, the app
   remembers that file's last play position and resumes from there automatically.
 - **Reset cue from the first item** — the top-right reset button in the player
@@ -65,8 +68,9 @@ mid-routine (practice sessions, workout routines, tutorials, and more).
    playback from the top.
 5. **During playback**, videos and images auto-advance in order. You can also
    manually swipe to any item (which immediately pauses the current video or image),
-   pause/scrub videos, resume from the last saved position when you come back to a
-   file, or use the reset button to restart the entire cue from the first item.
+   pause/scrub videos, turn on the "Keep player positions" toggle to remember
+   your spot even after the app closes, or use the reset button to restart the
+   entire cue from the first item.
 6. Reaching the last item shows a completion screen you can restart from, or
    close to return to the playlist.
 

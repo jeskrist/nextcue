@@ -75,10 +75,19 @@ class _StartupRouterState extends State<_StartupRouter> {
   Future<void> _route() async {
     final service = MediaPlaylistService();
     final itemsFuture = service.loadPlaylist();
+    final keepPlaybackProgressFuture = service.getKeepPlaybackProgress();
     final minimumDelay = Future<void>.delayed(_minimumSplashDuration);
 
     final items = await itemsFuture;
+    final keepPlaybackProgress = await keepPlaybackProgressFuture;
     await minimumDelay;
+
+    if (!keepPlaybackProgress) {
+      await service.clearPlaybackProgress();
+    } else {
+      final persistedProgress = await service.loadPlaybackProgress();
+      PlaylistPlayerScreen.hydratePlaybackState(persistedProgress);
+    }
 
     if (!mounted) return;
 

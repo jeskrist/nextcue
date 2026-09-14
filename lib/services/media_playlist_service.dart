@@ -11,6 +11,8 @@ import '../models/media_item.dart';
 class MediaPlaylistService {
   static const _playlistKey = 'nextcue_playlist';
   static const _legacyVideoKey = 'nextcue_video_path';
+  static const _keepPlaybackProgressKey = 'nextcue_keep_playback_progress';
+  static const _playbackProgressKey = 'nextcue_playback_progress';
   static const _uuid = Uuid();
 
   static const _videoExtensions = {
@@ -137,6 +139,47 @@ class MediaPlaylistService {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = items.map((e) => e.toJson()).toList();
     await prefs.setString(_playlistKey, jsonEncode(jsonList));
+  }
+
+  Future<bool> getKeepPlaybackProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keepPlaybackProgressKey) ?? true;
+  }
+
+  Future<void> setKeepPlaybackProgress(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keepPlaybackProgressKey, value);
+  }
+
+  Future<Map<String, Duration>> loadPlaybackProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonStr = prefs.getString(_playbackProgressKey);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return {};
+    }
+
+    try {
+      final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
+      return decoded.map((key, value) {
+        final ms = value is int ? value : int.tryParse(value.toString()) ?? 0;
+        return MapEntry(key, Duration(milliseconds: ms));
+      });
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Future<void> savePlaybackProgress(Map<String, Duration> progress) async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = <String, int>{
+      for (final entry in progress.entries) entry.key: entry.value.inMilliseconds,
+    };
+    await prefs.setString(_playbackProgressKey, jsonEncode(encoded));
+  }
+
+  Future<void> clearPlaybackProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_playbackProgressKey);
   }
 
   /// Detects whether [sourcePath] is a video or image.

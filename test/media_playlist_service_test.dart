@@ -61,6 +61,23 @@ void main() {
       expect(decoded[1]['imageDurationMs'], 10000);
     });
 
+    test('keepPlaybackProgress setting persists and loads correctly', () async {
+      SharedPreferences.setMockInitialValues({});
+
+      expect(await service.getKeepPlaybackProgress(), isTrue);
+      await service.setKeepPlaybackProgress(false);
+      await service.savePlaybackProgress({
+        'item-1': const Duration(seconds: 17),
+        'item-2': const Duration(minutes: 1, seconds: 3),
+      });
+
+      expect(await service.getKeepPlaybackProgress(), isFalse);
+      expect(await service.loadPlaybackProgress(), {
+        'item-1': const Duration(seconds: 17),
+        'item-2': const Duration(minutes: 1, seconds: 3),
+      });
+    });
+
     test('loadPlaylist rewrites legacy workout_media thumbnail paths', () async {
       final tempFile = File('${Directory.systemTemp.path}/test_migrated.mp4')
         ..createSync();

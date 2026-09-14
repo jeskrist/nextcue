@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:video_player/video_player.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../models/media_item.dart';
+import '../services/media_playlist_service.dart';
 import '../widgets/single_image_viewer.dart';
 import '../widgets/single_video_player_view.dart';
 
@@ -65,6 +67,12 @@ class PlaylistPlayerScreen extends StatefulWidget {
 
   static void clearPlaybackState() {
     _playbackProgress.clear();
+  }
+
+  static void hydratePlaybackState(Map<String, Duration> progress) {
+    _playbackProgress
+      ..clear()
+      ..addAll(progress);
   }
 
   @override
@@ -254,6 +262,18 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
     return value;
   }
 
+  Future<void> _persistSavedProgress() async {
+    final service = MediaPlaylistService();
+    final keepProgress = await service.getKeepPlaybackProgress();
+
+    if (!keepProgress) {
+      await service.clearPlaybackProgress();
+      return;
+    }
+
+    await service.savePlaybackProgress(PlaylistPlayerScreen._playbackProgress);
+  }
+
   void _saveCurrentProgress(int index) {
     if (index < 0 || index >= widget.playlist.length) return;
 
@@ -267,6 +287,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
         _savedPositions[item.id] = saved;
         PlaylistPlayerScreen._playbackProgress[item.id] = saved;
       }
+      unawaited(_persistSavedProgress());
       return;
     }
 
@@ -275,6 +296,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
       _savedPositions[item.id] = imageState.elapsed;
       PlaylistPlayerScreen._playbackProgress[item.id] = imageState.elapsed;
     }
+    unawaited(_persistSavedProgress());
   }
 
   void _pauseCurrentMedia() {
@@ -380,6 +402,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
   void _resetCue() {
     _savedPositions.clear();
     PlaylistPlayerScreen.clearPlaybackState();
+    unawaited(MediaPlaylistService().clearPlaybackProgress());
     for (final controller in _videoControllers.values) {
       controller.pause();
       controller.seekTo(Duration.zero);
@@ -404,6 +427,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
   void _restartPlaylist() {
     _savedPositions.clear();
     PlaylistPlayerScreen.clearPlaybackState();
+    unawaited(MediaPlaylistService().clearPlaybackProgress());
     setState(() {
       _isFinished = false;
       _isNextAutoStart = false;

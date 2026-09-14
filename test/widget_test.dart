@@ -31,6 +31,25 @@ void main() {
     expect(find.byType(FileSelectionScreen), findsOneWidget);
   });
 
+  testWidgets('FileSelectionScreen shows the keep-progress toggle',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const MaterialApp(home: FileSelectionScreen()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Keep player positions'), findsOneWidget);
+    final switchFinder = find.byType(SwitchListTile);
+    expect(switchFinder, findsOneWidget);
+    expect((tester.widget<SwitchListTile>(switchFinder)).value, isTrue);
+
+    await tester.tap(switchFinder);
+    await tester.pump();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getBool('nextcue_keep_playback_progress'), isFalse);
+  });
+
   testWidgets('NextCueApp launches and renders FileSelectionScreen',
       (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
