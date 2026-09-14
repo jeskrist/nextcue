@@ -83,6 +83,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
   bool _hasPopped = false;
   bool _videoWasPlaying = false;
   bool _isScrubbing = false;
+  final Map<String, Duration> _savedPositions = {};
 
   void _handleBackSwipe() {
     if (_currentIndex == 0 && !_hasPopped && mounted) {
@@ -238,7 +239,34 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
     }
   }
 
+  Duration _clampDuration(Duration value, Duration max) {
+    if (value < Duration.zero) return Duration.zero;
+    if (max > Duration.zero && value > max) return max;
+    return value;
+  }
+
+  void _saveCurrentProgress(int index) {
+    if (index < 0 || index >= widget.playlist.length) return;
+
+    final item = widget.playlist[index];
+    if (item.isVideo) {
+      final controller = _videoControllers[index];
+      if (controller != null && controller.value.isInitialized) {
+        final duration = controller.value.duration;
+        final position = controller.value.position;
+        _savedPositions[item.id] = _clampDuration(position, duration);
+      }
+      return;
+    }
+
+    final imageState = _imageViewerKeys[index]?.currentState;
+    if (imageState != null) {
+      _savedPositions[item.id] = imageState.elapsed;
+    }
+  }
+
   void _pauseCurrentMedia() {
+    _saveCurrentProgress(_currentIndex);
     _videoWasPlaying = false;
     if (_currentIndex < widget.playlist.length) {
       final currentItem = widget.playlist[_currentIndex];
@@ -275,12 +303,49 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
     }
   }
 
+  Future<void> _restoreSavedProgress(int index, {bool autoPlay = false}) async {
+    if (index < 0 || index >= widget.playlist.length) return;
+
+    final item = widget.playlist[index];
+    final saved = _savedPositions[item.id];
+
+    if (item.isVideo) {
+      final controller = await _ensureVideoController(index, autoPlay: autoPlay);
+      if (!controller.value.isInitialized) return;
+
+      final duration = controller.value.duration;
+      if (saved != null && duration > Duration.zero) {
+        final target = _clampDuration(saved, duration);
+        await controller.seekTo(target);
+      }
+      if (autoPlay && !controller.value.isPlaying) {
+        controller.play();
+      }
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = _imageViewerKeys[index]?.currentState;
+      if (state == null) return;
+
+      if (saved != null) {
+        state.seekTo(saved);
+      } else {
+        state.seekTo(Duration.zero);
+      }
+
+      if (autoPlay) {
+        state.play();
+      }
+    });
+  }
+
   void _onPageChanged(int index) {
-    // 1. Pause previous page
     _pauseCurrentMedia();
 
     final shouldAutoPlay = _isNextAutoStart;
-    _isNextAutoStart = false; // Reset auto play trigger
+    _isNextAutoStart = false;
     _videoWasPlaying = shouldAutoPlay;
     _isScrubbing = false;
 
@@ -288,18 +353,41 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
       _currentIndex = index;
     });
 
-    // 2. Initialize controllers and start or stay paused
     _initControllersForIndex(index, autoPlay: shouldAutoPlay);
+    unawaited(_restoreSavedProgress(index, autoPlay: shouldAutoPlay));
 
     if (shouldAutoPlay && widget.playlist[index].isImage) {
-      // Auto-start image countdown timer
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _imageViewerKeys[index]?.currentState?.play();
       });
     }
   }
 
+  void _resetCue() {
+    _savedPositions.clear();
+    for (final controller in _videoControllers.values) {
+      controller.pause();
+      controller.seekTo(Duration.zero);
+    }
+    for (final state in _imageViewerKeys.values) {
+      state.currentState?.pause();
+      state.currentState?.seekTo(Duration.zero);
+    }
+
+    setState(() {
+      _currentIndex = 0;
+      _isFinished = false;
+      _isNextAutoStart = false;
+      _videoWasPlaying = false;
+      _isScrubbing = false;
+    });
+
+    _pageController.jumpToPage(0);
+    _onPageChanged(0);
+  }
+
   void _restartPlaylist() {
+    _savedPositions.clear();
     setState(() {
       _isFinished = false;
       _isNextAutoStart = false;
@@ -569,7 +657,11 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
               ),
             ),
           ),
-          const SizedBox(width: 48), // Balancing width for close button
+          IconButton(
+            onPressed: _resetCue,
+            tooltip: 'Reset cue',
+            icon: const Icon(Icons.restart_alt_rounded, color: Colors.white),
+          ),
         ],
       ),
     );

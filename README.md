@@ -28,6 +28,11 @@ mid-routine (practice sessions, workout routines, tutorials, and more).
 - **Swipe between items mid-playback** — page left/right to jump to a
   different item at any time; active videos or image timers are automatically
   paused as soon as you begin swiping.
+- **Resume where you left off** — when you swipe back to a file, the app
+  remembers that file's last play position and resumes from there automatically.
+- **Reset cue from the first item** — the top-right reset button in the player
+  clears saved positions, rewinds every file, and restarts the cue from the
+  first item.
 - **Swipe back to playlist** — overscrolling past the first item (or swiping
   on a single-item playlist) pauses active playback and returns you to the playlist screen.
 - **"Cue Complete" screen** — reaching the end of the playlist shows a
@@ -60,7 +65,8 @@ mid-routine (practice sessions, workout routines, tutorials, and more).
    playback from the top.
 5. **During playback**, videos and images auto-advance in order. You can also
    manually swipe to any item (which immediately pauses the current video or image),
-   pause/scrub videos, or swipe back out to the playlist screen.
+   pause/scrub videos, resume from the last saved position when you come back to a
+   file, or use the reset button to restart the entire cue from the first item.
 6. Reaching the last item shows a completion screen you can restart from, or
    close to return to the playlist.
 

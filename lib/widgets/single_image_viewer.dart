@@ -8,6 +8,7 @@ import '../models/media_item.dart';
 class SingleImageViewer extends StatefulWidget {
   final MediaItem item;
   final bool autoStart;
+  final Duration initialElapsed;
   final VoidCallback onFinish;
   final ValueChanged<bool>? onPlayingChanged;
 
@@ -15,6 +16,7 @@ class SingleImageViewer extends StatefulWidget {
     super.key,
     required this.item,
     this.autoStart = false,
+    this.initialElapsed = Duration.zero,
     required this.onFinish,
     this.onPlayingChanged,
   });
@@ -31,9 +33,12 @@ class SingleImageViewerState extends State<SingleImageViewer> {
   Duration get _totalDuration =>
       widget.item.imageDuration ?? const Duration(seconds: 5);
 
+  Duration get elapsed => _elapsed;
+
   @override
   void initState() {
     super.initState();
+    _elapsed = widget.initialElapsed;
     if (widget.autoStart) {
       play();
     }
@@ -42,13 +47,20 @@ class SingleImageViewerState extends State<SingleImageViewer> {
   @override
   void didUpdateWidget(covariant SingleImageViewer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.item.id != oldWidget.item.id) {
+    final sameItem = widget.item.id == oldWidget.item.id;
+    if (!sameItem) {
       _stopTimer();
-      _elapsed = Duration.zero;
+      _elapsed = widget.initialElapsed;
       _isPlaying = false;
       if (widget.autoStart) {
         play();
       }
+      return;
+    }
+
+    if (widget.initialElapsed != oldWidget.initialElapsed && !_isPlaying) {
+      _elapsed = widget.initialElapsed;
+      setState(() {});
     }
   }
 
