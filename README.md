@@ -10,6 +10,9 @@ mid-routine (practice sessions, workout routines, tutorials, and more).
 
 - **Mixed playlists** — queue up to 10 items in any combination of videos and
   images.
+- **Splash screen stays visible for at least 3 seconds** — the opening splash
+  remains on screen until startup work is finished and the minimum app-loading
+  delay has elapsed, preventing a premature flash to the main screen.
 - **Persistent across launches** — your playlist (order, per-item settings,
   and thumbnails) is saved automatically and reloads every time you open the
   app.

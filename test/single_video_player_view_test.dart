@@ -94,7 +94,6 @@ class FakeVideoPlayerPlatform extends VideoPlayerPlatform {
   }
 }
 
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -105,7 +104,8 @@ void main() {
     VideoPlayerPlatform.instance = fakePlatform;
   });
 
-  testWidgets('SingleVideoPlayerView renders play button when paused and allows seeking',
+  testWidgets(
+      'SingleVideoPlayerView renders play button when paused and allows seeking',
       (WidgetTester tester) async {
     final controller = VideoPlayerController.file(File('dummy.mp4'));
     await controller.initialize();

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:nextcue/main.dart';
 import 'package:nextcue/screens/file_selection_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,12 +7,37 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  testWidgets('startup splash stays visible for a minimum of 3 seconds',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const NextCueApp());
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                'assets/splash/splash.png',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byType(FileSelectionScreen), findsNothing);
+
+    await tester.pump(const Duration(milliseconds: 3000));
+    await tester.pump();
+    expect(find.byType(FileSelectionScreen), findsOneWidget);
+  });
+
   testWidgets('NextCueApp launches and renders FileSelectionScreen',
       (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
 
     await tester.pumpWidget(const NextCueApp());
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
 
     expect(find.byType(NextCueApp), findsOneWidget);
     expect(find.byType(FileSelectionScreen), findsOneWidget);

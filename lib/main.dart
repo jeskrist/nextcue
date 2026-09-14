@@ -64,6 +64,8 @@ class _StartupRouter extends StatefulWidget {
 }
 
 class _StartupRouterState extends State<_StartupRouter> {
+  static const Duration _minimumSplashDuration = Duration(seconds: 1);
+
   @override
   void initState() {
     super.initState();
@@ -72,7 +74,11 @@ class _StartupRouterState extends State<_StartupRouter> {
 
   Future<void> _route() async {
     final service = MediaPlaylistService();
-    final items = await service.loadPlaylist();
+    final itemsFuture = service.loadPlaylist();
+    final minimumDelay = Future<void>.delayed(_minimumSplashDuration);
+
+    final items = await itemsFuture;
+    await minimumDelay;
 
     if (!mounted) return;
 
