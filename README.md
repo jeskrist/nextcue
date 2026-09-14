@@ -23,9 +23,10 @@ screen mid-set.
 - **Auto-advancing playback** — videos advance to the next item when they
   finish playing; images advance when their timer runs out.
 - **Swipe between items mid-playback** — page left/right to jump to a
-  different item at any time, not just when the current one finishes.
+  different item at any time; active videos or image timers are automatically
+  paused as soon as you begin swiping.
 - **Swipe back to playlist** — overscrolling past the first item (or swiping
-  on a single-item playlist) returns you to the playlist screen.
+  on a single-item playlist) pauses active playback and returns you to the playlist screen.
 - **"Cue Complete" screen** — reaching the end of the playlist shows a
   completion screen with a one-tap restart from the beginning.
 - **Full video controls** — tap the video to pause; while paused, use restart,
@@ -55,8 +56,8 @@ screen mid-set.
 4. **Tap "Start Cue"** (or swipe left on the playlist screen) to begin
    playback from the top.
 5. **During playback**, videos and images auto-advance in order. You can also
-   manually swipe to any item, pause/scrub videos, or swipe back out to the
-   playlist screen.
+   manually swipe to any item (which immediately pauses the current video or image),
+   pause/scrub videos, or swipe back out to the playlist screen.
 6. Reaching the last item shows a completion screen you can restart from, or
    close to return to the playlist.
 

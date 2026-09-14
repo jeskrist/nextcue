@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -323,16 +324,29 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
               children: [
                 _buildTopBar(),
                 Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    itemCount: widget.playlist.length,
-                    onPageChanged: _onPageChanged,
-                    physics: _BackOverscrollPhysics(
-                       onOverscrollStart: _handleBackSwipe,
-                      onOverscrollEnd:
-                          widget.playlist.length == 1 ? _handleBackSwipe : null,
-                    ),
-                    itemBuilder: (context, index) {
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      if (!_isAutoAdvancing &&
+                          ((notification is ScrollStartNotification &&
+                                  notification.dragDetails != null) ||
+                              (notification is UserScrollNotification &&
+                                  notification.direction !=
+                                      ScrollDirection.idle))) {
+                        _pauseCurrentMedia();
+                      }
+                      return false;
+                    },
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: widget.playlist.length,
+                      onPageChanged: _onPageChanged,
+                      physics: _BackOverscrollPhysics(
+                        onOverscrollStart: _handleBackSwipe,
+                        onOverscrollEnd: widget.playlist.length == 1
+                            ? _handleBackSwipe
+                            : null,
+                      ),
+                      itemBuilder: (context, index) {
                       final item = widget.playlist[index];
                       if (item.isVideo) {
                         final controller = _videoControllers[index];
@@ -416,6 +430,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                     },
                   ),
                 ),
+              ),
               ],
             ),
 
