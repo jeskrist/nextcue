@@ -319,7 +319,8 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
     if (index < 0 || index >= widget.playlist.length) return;
 
     final item = widget.playlist[index];
-    final saved = _savedPositions[item.id] ?? PlaylistPlayerScreen._playbackProgress[item.id];
+    final saved = _savedPositions[item.id] ??
+        PlaylistPlayerScreen._playbackProgress[item.id];
 
     if (item.isVideo) {
       final controller =
