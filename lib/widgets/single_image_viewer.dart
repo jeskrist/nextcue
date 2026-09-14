@@ -178,7 +178,7 @@ class SingleImageViewerState extends State<SingleImageViewer> {
           size: 92,
           tooltip: 'Resume',
           filled: true,
-          fillColor: const Color(0xFF387FCF),
+          fillColor: Theme.of(context).colorScheme.primary,
           onPressed: togglePlayPause,
         ),
         const SizedBox(height: 24),
@@ -278,7 +278,8 @@ class SingleImageViewerState extends State<SingleImageViewer> {
                     File(widget.item.filePath),
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) => const Center(
-                      child: Icon(Icons.broken_image, size: 64, color: Colors.white38),
+                      child: Icon(Icons.broken_image,
+                          size: 64, color: Colors.white38),
                     ),
                   ),
                 ),

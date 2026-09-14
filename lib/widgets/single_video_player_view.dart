@@ -111,7 +111,7 @@ class _SingleVideoPlayerViewState extends State<SingleVideoPlayerView> {
           size: 92,
           tooltip: 'Resume',
           filled: true,
-          fillColor: const Color(0xFF387FCF),
+          fillColor: Theme.of(context).colorScheme.primary,
           onPressed: widget.onTogglePlayPause,
         ),
         const SizedBox(height: 24),

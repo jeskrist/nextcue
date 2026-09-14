@@ -163,16 +163,19 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
   }
 
   Widget _buildAddTile() {
+    final accent = Theme.of(context).colorScheme.primary;
+    final deepIndigo = Theme.of(context).colorScheme.secondary;
+
     return GestureDetector(
       onTap: _importing ? null : _pickMediaFiles,
       child: Container(
         width: 112,
         height: 112,
         decoration: BoxDecoration(
-          color: const Color(0xFF1E143C).withValues(alpha: 0.6),
+          color: deepIndigo.withValues(alpha: 0.6),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF387FCF).withValues(alpha: 0.5),
+            color: accent.withValues(alpha: 0.5),
             width: 1.8,
           ),
         ),
@@ -180,19 +183,19 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (_importing)
-              const SizedBox(
+              SizedBox(
                 width: 28,
                 height: 28,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: Color(0xFF387FCF),
+                  color: accent,
                 ),
               )
             else ...[
-              const Icon(
+              Icon(
                 Icons.add_rounded,
                 size: 38,
-                color: Color(0xFF387FCF),
+                color: accent,
               ),
               const SizedBox(height: 4),
               const Text(
@@ -224,7 +227,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
         children: [
           // Thumbnail image or placeholder
           Container(
-            color: const Color(0xFF1E143C),
+            color: Theme.of(context).colorScheme.secondary,
             child: thumbFile.existsSync()
                 ? Image.file(
                     thumbFile,
@@ -241,7 +244,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.12),
                 border: Border.all(
-                  color: const Color(0xFF387FCF),
+                  color: Theme.of(context).colorScheme.primary,
                   width: 2.5,
                 ),
                 borderRadius: BorderRadius.circular(12),
@@ -341,8 +344,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
             left: 5,
             child: IgnorePointer(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.65),
                   borderRadius: BorderRadius.circular(4),
@@ -364,6 +366,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
   }
 
   Widget _buildThumbnailTile(int index, MediaItem item) {
+    final accent = Theme.of(context).colorScheme.primary;
     final isImage = item.isImage;
     final isDraggingThis = _draggingIndex == index;
     final isHoverTarget = _hoverIndex == index &&
@@ -400,7 +403,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF387FCF).withValues(alpha: 0.55),
+                          color: accent.withValues(alpha: 0.55),
                           blurRadius: 14,
                           spreadRadius: 2,
                         ),
@@ -443,7 +446,9 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF387FCF)
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
                                       .withValues(alpha: 0.65),
                                   blurRadius: 22,
                                   spreadRadius: 4,
@@ -492,10 +497,11 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFF387FCF);
+    final accent = Theme.of(context).colorScheme.primary;
+    final deepIndigo = Theme.of(context).colorScheme.secondary;
 
     if (_loading) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: Colors.black,
         body: Center(
           child: CircularProgressIndicator(color: accent),
@@ -504,9 +510,9 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: deepIndigo,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: deepIndigo,
         title: const Text(
           'Playlist',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
@@ -516,7 +522,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E143C),
+              color: deepIndigo,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white12),
             ),
@@ -597,8 +603,7 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E143C)
-                                .withValues(alpha: 0.35),
+                            color: deepIndigo.withValues(alpha: 0.35),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: Colors.white10),
                           ),
@@ -647,7 +652,9 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E143C)
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondary
                                 .withValues(alpha: 0.25),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(color: Colors.white10),
@@ -679,11 +686,11 @@ class _FileSelectionScreenState extends State<FileSelectionScreen> {
 
               // Start Cue bottom bar
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 16),
-                decoration: const BoxDecoration(
-                  color: Colors.black,
-                  border: Border(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                decoration: BoxDecoration(
+                  color: deepIndigo,
+                  border: const Border(
                     top: BorderSide(color: Colors.white10, width: 1),
                   ),
                 ),

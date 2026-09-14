@@ -7,9 +7,11 @@ Future<Duration?> showDurationPickerSheet({
   required BuildContext context,
   required Duration initialDuration,
 }) {
+  final deepIndigo = Theme.of(context).colorScheme.secondary;
+
   return showModalBottomSheet<Duration>(
     context: context,
-    backgroundColor: const Color(0xFF1E143C),
+    backgroundColor: deepIndigo,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -44,8 +46,10 @@ class _DurationPickerSheetState extends State<DurationPickerSheet> {
     if (_selectedMinutes == 0 && _selectedSeconds == 0) {
       _selectedSeconds = 5;
     }
-    _minuteController = FixedExtentScrollController(initialItem: _selectedMinutes);
-    _secondController = FixedExtentScrollController(initialItem: _selectedSeconds);
+    _minuteController =
+        FixedExtentScrollController(initialItem: _selectedMinutes);
+    _secondController =
+        FixedExtentScrollController(initialItem: _selectedSeconds);
   }
 
   @override
@@ -79,7 +83,8 @@ class _DurationPickerSheetState extends State<DurationPickerSheet> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+                  child: const Text('Cancel',
+                      style: TextStyle(color: Colors.white60)),
                 ),
                 const Text(
                   'Display Duration',
@@ -91,10 +96,10 @@ class _DurationPickerSheetState extends State<DurationPickerSheet> {
                 ),
                 TextButton(
                   onPressed: _onDone,
-                  child: const Text(
+                  child: Text(
                     'Done',
                     style: TextStyle(
-                      color: Color(0xFF387FCF),
+                      color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -118,7 +123,8 @@ class _DurationPickerSheetState extends State<DurationPickerSheet> {
                         return Center(
                           child: Text(
                             '$index min',
-                            style: const TextStyle(color: textColor, fontSize: 18),
+                            style:
+                                const TextStyle(color: textColor, fontSize: 18),
                           ),
                         );
                       }),
@@ -135,7 +141,8 @@ class _DurationPickerSheetState extends State<DurationPickerSheet> {
                         return Center(
                           child: Text(
                             '$index sec',
-                            style: const TextStyle(color: textColor, fontSize: 18),
+                            style:
+                                const TextStyle(color: textColor, fontSize: 18),
                           ),
                         );
                       }),

@@ -315,8 +315,11 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final secondary = Theme.of(context).colorScheme.secondary;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: secondary,
       body: SafeArea(
         child: Stack(
           children: [
@@ -347,104 +350,105 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                             : null,
                       ),
                       itemBuilder: (context, index) {
-                      final item = widget.playlist[index];
-                      if (item.isVideo) {
-                        final controller = _videoControllers[index];
-                        if (controller == null ||
-                            !controller.value.isInitialized) {
-                          return const Center(
-                            child: CircularProgressIndicator(
-                                color: Colors.white70),
+                        final item = widget.playlist[index];
+                        if (item.isVideo) {
+                          final controller = _videoControllers[index];
+                          if (controller == null ||
+                              !controller.value.isInitialized) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.white70),
+                            );
+                          }
+                          return SingleVideoPlayerView(
+                            controller: controller,
+                            onTogglePlayPause: () async {
+                              if (controller.value.isPlaying) {
+                                _videoWasPlaying = false;
+                                await controller.pause();
+                              } else {
+                                final pos = controller.value.position;
+                                final dur = controller.value.duration;
+                                if (dur > Duration.zero &&
+                                    (controller.value.isCompleted ||
+                                        pos >= dur ||
+                                        (dur - pos).inMilliseconds < 250)) {
+                                  await controller.seekTo(Duration.zero);
+                                }
+                                _videoWasPlaying = true;
+                                await controller.play();
+                              }
+                              if (mounted) setState(() {});
+                            },
+                            onRestart: () async {
+                              await controller.seekTo(Duration.zero);
+                              if (mounted) setState(() {});
+                            },
+                            onSkip: (sec) async {
+                              final target = controller.value.position +
+                                  Duration(seconds: sec);
+                              final dur = controller.value.duration;
+                              final clamped = target < Duration.zero
+                                  ? Duration.zero
+                                  : (target > dur ? dur : target);
+                              await controller.seekTo(clamped);
+                              if (mounted) setState(() {});
+                            },
+                            onSeek: (_) {
+                              // The seek was already fully awaited inside
+                              // SingleVideoPlayerView.onChangeEnd before play() is
+                              // called. Calling controller.seekTo here again would
+                              // fire an unawaited seek that races with play() and
+                              // intermittently leaves the video stuck paused.
+                            },
+                            onPauseOnTap: () {
+                              if (controller.value.isPlaying) {
+                                _videoWasPlaying = false;
+                                setState(() => controller.pause());
+                              }
+                            },
+                            onScrubbingChanged: (scrubbing) {
+                              _isScrubbing = scrubbing;
+                              if (scrubbing) {
+                                _videoWasPlaying = false;
+                              }
+                            },
+                          );
+                        } else {
+                          // Image page
+                          final key = _imageViewerKeys.putIfAbsent(
+                            index,
+                            () => GlobalKey<SingleImageViewerState>(),
+                          );
+
+                          return SingleImageViewer(
+                            key: key,
+                            item: item,
+                            autoStart: false,
+                            onPlayingChanged: (playing) =>
+                                _updateWakelock(playing),
+                            onFinish: () => _handleItemNaturalFinish(index),
                           );
                         }
-                        return SingleVideoPlayerView(
-                          controller: controller,
-                          onTogglePlayPause: () async {
-                            if (controller.value.isPlaying) {
-                              _videoWasPlaying = false;
-                              await controller.pause();
-                            } else {
-                              final pos = controller.value.position;
-                              final dur = controller.value.duration;
-                              if (dur > Duration.zero &&
-                                  (controller.value.isCompleted ||
-                                      pos >= dur ||
-                                      (dur - pos).inMilliseconds < 250)) {
-                                await controller.seekTo(Duration.zero);
-                              }
-                              _videoWasPlaying = true;
-                              await controller.play();
-                            }
-                            if (mounted) setState(() {});
-                          },
-                          onRestart: () async {
-                            await controller.seekTo(Duration.zero);
-                            if (mounted) setState(() {});
-                          },
-                          onSkip: (sec) async {
-                            final target = controller.value.position +
-                                Duration(seconds: sec);
-                            final dur = controller.value.duration;
-                            final clamped = target < Duration.zero
-                                ? Duration.zero
-                                : (target > dur ? dur : target);
-                            await controller.seekTo(clamped);
-                            if (mounted) setState(() {});
-                          },
-                          onSeek: (_) {
-                            // The seek was already fully awaited inside
-                            // SingleVideoPlayerView.onChangeEnd before play() is
-                            // called. Calling controller.seekTo here again would
-                            // fire an unawaited seek that races with play() and
-                            // intermittently leaves the video stuck paused.
-                          },
-                          onPauseOnTap: () {
-                            if (controller.value.isPlaying) {
-                              _videoWasPlaying = false;
-                              setState(() => controller.pause());
-                            }
-                          },
-                          onScrubbingChanged: (scrubbing) {
-                            _isScrubbing = scrubbing;
-                            if (scrubbing) {
-                              _videoWasPlaying = false;
-                            }
-                          },
-                        );
-                      } else {
-                        // Image page
-                        final key = _imageViewerKeys.putIfAbsent(
-                          index,
-                          () => GlobalKey<SingleImageViewerState>(),
-                        );
-
-                        return SingleImageViewer(
-                          key: key,
-                          item: item,
-                          autoStart: false,
-                          onPlayingChanged: (playing) =>
-                              _updateWakelock(playing),
-                          onFinish: () => _handleItemNaturalFinish(index),
-                        );
-                      }
-                    },
+                      },
+                    ),
                   ),
                 ),
-              ),
               ],
             ),
 
             // Cue Completed Overlay
             if (_isFinished)
               Container(
-                color: Colors.black.withValues(alpha: 0.88),
+                color: secondary.withValues(alpha: 0.88),
                 child: Stack(
                   children: [
                     Positioned(
                       top: 8,
                       left: 12,
                       child: IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Colors.white),
+                        icon: const Icon(Icons.close_rounded,
+                            color: Colors.white),
                         tooltip: 'Exit to playlist',
                         onPressed: () => Navigator.of(context).pop(),
                       ),
@@ -458,8 +462,8 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                             Container(
                               width: 84,
                               height: 84,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF387FCF),
+                              decoration: BoxDecoration(
+                                color: primary,
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -490,7 +494,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                             ElevatedButton.icon(
                               onPressed: _restartPlaylist,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF387FCF),
+                                backgroundColor: primary,
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 28,
@@ -517,13 +521,15 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
   }
 
   Widget _buildTopBar() {
+    final primary = Theme.of(context).colorScheme.primary;
+    final secondary = Theme.of(context).colorScheme.secondary;
     final total = widget.playlist.length;
     final current = _currentIndex + 1;
     final item =
         widget.playlist.isNotEmpty ? widget.playlist[_currentIndex] : null;
 
     return Container(
-      color: Colors.black,
+      color: secondary,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -538,7 +544,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E143C),
+                color: secondary,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.white12),
               ),
@@ -548,7 +554,7 @@ class _PlaylistPlayerScreenState extends State<PlaylistPlayerScreen>
                   Icon(
                     item?.isVideo ?? false ? Icons.videocam : Icons.photo,
                     size: 15,
-                    color: const Color(0xFF387FCF),
+                    color: primary,
                   ),
                   const SizedBox(width: 6),
                   Text(

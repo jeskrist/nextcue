@@ -15,8 +15,8 @@ class NextCueApp extends StatelessWidget {
   const NextCueApp({super.key});
 
   // Primary accent color
-  static const Color accent = Color(0xFF387FCF);
-  static const Color deepIndigo = Color(0xFF1E143C);
+  static const Color accent = Color.fromARGB(255, 150, 192, 240);
+  static const Color deepIndigo = Color.fromARGB(255, 19, 13, 37);
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class NextCueApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.black,
+        scaffoldBackgroundColor: deepIndigo,
         colorScheme: ColorScheme.fromSeed(
           seedColor: accent,
           brightness: Brightness.dark,
@@ -34,7 +34,7 @@ class NextCueApp extends StatelessWidget {
           secondary: deepIndigo,
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.black,
+          backgroundColor: deepIndigo,
           foregroundColor: Colors.white,
           elevation: 0,
         ),
@@ -85,7 +85,8 @@ class _StartupRouterState extends State<_StartupRouter> {
       // Push the player on top so back/close returns to FileSelectionScreen.
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => PlaylistPlayerScreen(playlist: List.unmodifiable(items)),
+          builder: (_) =>
+              PlaylistPlayerScreen(playlist: List.unmodifiable(items)),
         ),
       );
     }
@@ -97,7 +98,7 @@ class _StartupRouterState extends State<_StartupRouter> {
   Widget build(BuildContext context) {
     // Shown briefly while we check saved files, matching the native splash.
     return Scaffold(
-      backgroundColor: const Color(0xFFEDF3F9),
+      backgroundColor: NextCueApp.deepIndigo,
       body: Center(
         child: Image.asset(
           'assets/splash/splash.png',

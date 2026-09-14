@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^flutter analyze lib/screens/file_selection_screen\\.dart lib/widgets/duration_picker_sheet\\.dart lib/widgets/single_image_viewer\\.dart lib/widgets/single_video_player_view\\.dart$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
